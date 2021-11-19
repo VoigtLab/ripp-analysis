@@ -711,7 +711,8 @@ def variant_raw_plots(pep_plasmids, sdf, count_others=False, rt_min=2, rt_max=5.
         else:
             spectrum_ax.set_ylim([0  ,10000000])
             spectrum_ax.set_yticks([0,10000000])
-            spectrum_ax.set_yticklabels([0,1])
+            spectrum_ax.set_yticklabels([0,1], fontdict=small_font)
+            spectrum_ax.tick_params(axis='both', which='both', labelsize=4)
 
         spectrum_ax.set_xlim(500, 2000)
         if i == len(pep_plasmids)+1:
