@@ -120,7 +120,7 @@ def integrate_mass(peak_info, mz_range = [400, 2500], rt_range = [1,5.5], plot=F
                                   p0=parguess,
                                   bounds = ((100, 1, 0.001, 0.01, 100),
                                             (1000000000, fitting['rt'].max()+0.1, 0.1, 10, 10000000)),
-                                  method='trf', maxfev=1000000)
+                                  method='trf', maxfev=100000)
 
         area_error, rt_error, width_error, skew_error, baseline_error = np.sqrt(np.diag(pcov))
         peak_info['fit_success'] = 1

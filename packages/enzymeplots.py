@@ -112,7 +112,7 @@ def matrix_subplot(labels, mat_ax, max_columns=None, plasmid_numbers=[]):
 def alanine_block_plot(extract_df, wt_sequence, ddgi_scores, core_length=0):
     variants_ddgn = extract_df.groupby('sequence', group_keys=False).agg({'ddg':'mean', 'pep_plasmid':'first'}).reset_index()
     
-    seq_alignments, labels, label_order, labels_aligned = la.seq_alignment(wt_sequence, variants_ddgn, score='ddg')
+    seq_alignments, labels, label_order, labels_aligned = da.seq_alignment(wt_sequence, variants_ddgn, score='ddg')
     
     variants_ddgn['order'] = variants_ddgn['sequence'].apply(lambda x: label_order.index(x))
     plasmid_numbers = variants_ddgn.sort_values('order', ascending=False)['pep_plasmid'].astype('int')
@@ -484,7 +484,7 @@ def mod_type_color(pt, count_others=False):
         color='black'
     return color
 
-def validation_plots(extract_df, count_others=False, rt_min=2, rt_max=5.5):
+def validation_plots(extract_df, count_others=False, rt_min=2, rt_max=5.5, save=True):
     sdf = da.get_full_sdf(extract_df, group=True)
 
     for ex, e_df in sdf.groupby('extract'):
@@ -500,7 +500,7 @@ def validation_plots(extract_df, count_others=False, rt_min=2, rt_max=5.5):
         
         y_ticks, y_labels = get_lims(tic_df['int'].max())
         plot_cm(tic_df, tic_ax, color='0.0')
-        format_cm(tic_ax, y_ticks=y_ticks, y_labels=y_labels, rt_min=rt_min, rt_max=rt_max)
+        format_cm(tic_ax, yticks=y_ticks, yticklabels=y_labels, rt_min=rt_min, rt_max=rt_max)
         tic_ax.set_title("Total Ion Chromatogram", fontsize=6, pad=3)
 
         max_ever = 0
@@ -534,7 +534,7 @@ def validation_plots(extract_df, count_others=False, rt_min=2, rt_max=5.5):
                                                     edgecolor='none', facecolor='0.9'))
 
         y_ticks, y_labels = get_lims(max_ever)
-        format_cm(ecc_ax, y_ticks=y_ticks, y_labels=y_labels, rt_min=rt_min, rt_max=rt_max, ylabel=None)
+        format_cm(ecc_ax, yticks=y_ticks, yticklabels=y_labels, rt_min=rt_min, rt_max=rt_max, ylabel=None)
         ecc_ax.set_title("Extracted Compound Chromatograms", fontsize=6, pad=3)
 
         msdf = e_df['lcd'].iloc[0]._df.copy()
@@ -579,9 +579,9 @@ def validation_plots(extract_df, count_others=False, rt_min=2, rt_max=5.5):
         spec_ax_zoom.set_title("Spectrum (Adduct: [M+" + c + "H$^+]^{" + c + "+}$)", fontsize=6, pad=3)
         
         plt.text(0.02, 0.58, 'a', fontdict=big_font, transform=plt.gcf().transFigure)
-
-        plt.savefig("./matplotlib/{}_{}.png".format(e_df['pep_plasmid'].iloc[0], e_df['extract'].iloc[0]),
-                    bbox_inches='tight', pad_inches=0)
+        if save:
+            plt.savefig("./matplotlib/{}_{}.png".format(e_df['pep_plasmid'].iloc[0], e_df['extract'].iloc[0]),
+                        bbox_inches='tight', pad_inches=0)
 
 def wrap_list(pep_list, length=20):
     if type(length) == int:
@@ -595,7 +595,7 @@ def wrap_list(pep_list, length=20):
             break
         
 def variant_raw_plots(pep_plasmids, sdf, count_others=False, rt_min=2, rt_max=5.5, sort=False,
-                      wrap=20, save_prefix="", save_index=None, plot_replicate=1):
+                      wrap=20, save_prefix="", save_index=None, plot_replicate=1, save=True):
     
     pep_plasmids = [pp if type(pp) == int else pp if "-" in pp else int(pp) for pp in pep_plasmids]
     if sort:
@@ -605,7 +605,7 @@ def variant_raw_plots(pep_plasmids, sdf, count_others=False, rt_min=2, rt_max=5.
             for i, pp in enumerate(wrap_list(pep_plasmids, length=wrap)):
                 variant_raw_plots(pp, sdf, count_others=count_others, rt_min=rt_min,
                                   rt_max=rt_max, sort=sort, wrap=wrap, save_prefix=save_prefix,
-                                  save_index=i+1, plot_replicate=plot_replicate)
+                                  save_index=i+1, plot_replicate=plot_replicate, save=save)
             return
     extract_df = da.sub_pivot_df(pep_plasmids, sdf, group=False)
     sdf = da.get_full_sdf(extract_df, group=False)
@@ -722,8 +722,8 @@ def variant_raw_plots(pep_plasmids, sdf, count_others=False, rt_min=2, rt_max=5.
             spectrum_ax.set_xticks([500, 1000, 1500, 2000])
             spectrum_ax.set_xticklabels([])
         format_axis(spectrum_ax)
-        
-    if type(save_index) == int:
-        plt.savefig("./matplotlib/{}_{}.png".format(save_prefix, save_index), bbox_inches='tight', pad_inches=0)
-    else:
-        plt.savefig("./matplotlib/{}.png".format(save_prefix), bbox_inches='tight', pad_inches=0)
+    if save:
+        if type(save_index) == int:
+            plt.savefig("./matplotlib/{}_{}.png".format(save_prefix, save_index), bbox_inches='tight', pad_inches=0)
+        else:
+            plt.savefig("./matplotlib/{}.png".format(save_prefix), bbox_inches='tight', pad_inches=0)
